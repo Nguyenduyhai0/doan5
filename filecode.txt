@@ -1,0 +1,88 @@
+
+#include <ESP8266WiFi.h>
+WiFiClient client;
+WiFiServer server(80);
+const char* ssid = "Thanh Binh";
+const char* password = "0969004284";
+String  command =""; // Lệnh nhận được từ thiết bị Android
+int relay1 = 16;
+int relay2 = 5;
+int relay3 = 4;
+int relay4 = 2;
+ 
+void setup()
+{
+  Serial.begin(115200);
+ 
+  pinMode(relay1, OUTPUT); 
+  pinMode(relay2, OUTPUT);  
+  pinMode(relay3, OUTPUT);  
+  pinMode(relay4, OUTPUT);  
+ 
+  digitalWrite(relay1,LOW);
+  digitalWrite(relay2,LOW);
+  digitalWrite(relay3,LOW);
+  digitalWrite(relay4,LOW);
+      
+  connectWiFi();
+  server.begin();
+}
+ 
+void loop()
+{
+    client = server.available();
+    if (!client) return; 
+    command = checkClient ();
+  Serial.println(command);
+       
+     if (command == "r1on"  || command == "B%E1%BA%ACT%20%C4%90%C3%88N%201")    digitalWrite(relay1,1); // Bật đèn 1
+    else if (command == "r1off" || command == "T%E1%BA%AET%20%C4%90%C3%88N%201")    digitalWrite(relay1,0);// Tắt đèn 1
+    else if (command == "r2on"  || command == "B%E1%BA%ACT%20%C4%90%C3%88N%202")    digitalWrite(relay2,1);     
+    else if (command == "r2off" || command == "T%E1%BA%AET%20%C4%90%C3%88N%202")    digitalWrite(relay2,0);
+    else if (command == "r3on"  || command == "B%E1%BA%ACT%20%C4%90%C3%88N%203")    digitalWrite(relay3,1);
+    else if (command == "r3off" || command == "T%E1%BA%AET%20%C4%90%C3%88N%203")    digitalWrite(relay3,0);
+    else if (command == "r4on"  || command == "B%E1%BA%ACT%20%C4%90%C3%88N%204")    digitalWrite(relay4,1);
+    else if (command == "r4off" || command == "T%E1%BA%AET%20%C4%90%C3%88N%204")    digitalWrite(relay4,0);
+    else if (command == "allon" || command == "B%E1%BA%ACT%20T%E1%BA%A4T%20C%E1%BA%A2%20THI%E1%BA%BET%20B%E1%BB%8A") // Bật tất cả thiết bị 
+    {
+      digitalWrite(relay1,HIGH);
+      digitalWrite(relay2,HIGH);
+      digitalWrite(relay3,HIGH);
+      digitalWrite(relay4,HIGH);
+    }
+    else if (command == "alloff" || command == "T%E1%BA%AET%20T%E1%BA%A4T%20C%E1%BA%A2%20THI%E1%BA%BET%20B%E1%BB%8A") // Tắt tất cả thiết bị 
+    {
+      
+      digitalWrite(relay1,LOW);
+      digitalWrite(relay2,LOW);
+      digitalWrite(relay3,LOW);
+      digitalWrite(relay4,LOW);
+    }
+    
+}
+ 
+// connecting WiFi
+void connectWiFi()
+{
+  Serial.println("Connecting to WIFI");
+  WiFi.begin(ssid, password);
+  while ((!(WiFi.status() == WL_CONNECTED)))
+  {
+    delay(300);
+    Serial.print("..");
+  }
+  Serial.println("");
+  Serial.println("WiFi connected");
+  Serial.println("NodeMCU Local IP is : ");
+  Serial.print((WiFi.localIP()));
+}
+ 
+/* kiểm tra lệnh đã nhận từ Thiết bị Android */
+String checkClient ()
+{
+  while(!client.available()) delay(1); 
+  String request = client.readStringUntil('\r');
+  request.remove(0, 5);
+  request.remove(request.length()-9,9);
+  return request;
+}
